@@ -1,0 +1,54 @@
+import java.util.*;
+
+class TicketBookingSystem {
+    private int availableSeats;
+
+    public TicketBookingSystem(int seats) {
+        this.availableSeats = seats;
+    }
+
+    public synchronized boolean bookSeat(String customerName) {
+        if (availableSeats > 0) {
+            System.out.println(customerName + " booked a seat successfully! Seats left: " + (--availableSeats));
+            return true;
+        } else {
+            System.out.println(customerName + " failed to book. No seats left!");
+            return false;
+        }
+    }
+}
+
+class Customer extends Thread {
+    private TicketBookingSystem system;
+    private String customerType;
+
+    public Customer(TicketBookingSystem system, String name, int priority, String customerType) {
+        super(name);
+        this.system = system;
+        this.customerType = customerType;
+        setPriority(priority); // Setting thread priority (VIP gets higher priority)
+    }
+
+    @Override
+    public void run() {
+        system.bookSeat(getName() + " (" + customerType + ")");
+    }
+}
+
+public class TicketBookingApp {
+    public static void main(String[] args) {
+        int totalSeats = 5;
+        TicketBookingSystem system = new TicketBookingSystem(totalSeats);
+
+        List<Customer> customers = new ArrayList<>();
+
+        // Creating VIP customers (Higher priority)
+        customers.add(new Customer(system, "VIP_Customer1", Thread.MAX_PRIORITY, "VIP"));
+        customers.add(new Customer(system, "VIP_Customer2", Thread.MAX_PRIORITY, "VIP"));
+
+        // Creating Regular customers (Lower priority)
+        customers.add(new Customer(system, "Regular_Customer1", Thread.NORM_PRIORITY, "Regular"));
+        customers.add(new Customer(system, "Regular_Customer2", Thread.NORM_PRIORITY, "Regular"));
+        customers.add(new Customer(system, "Regular_Customer3", Thread.NORM_PRIORITY, "Regular"));
+
+        // Shuffling
